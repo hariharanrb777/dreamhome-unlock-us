@@ -21,28 +21,31 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <div className="flex min-h-screen">
-        <AppSidebar />
-        <main className="flex flex-col flex-1 min-h-screen">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/properties" element={<Properties />} />
-            <Route path="/properties/:id" element={<PropertyDetail />} />
-            <Route path="/add-listing" element={<AddListing />} />
-            <Route path="/saved" element={<Saved />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-      </div>
+      <BrowserRouter>
+        <Toaster />
+        <Sonner />
+        <div className="flex min-h-screen">
+          <AppSidebar />
+          <main className="flex flex-col flex-1 min-h-screen">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/properties" element={<Properties />} />
+              <Route path="/properties/:id" element={<PropertyDetail />} />
+              <Route path="/add-listing" element={<AddListing />} />
+              <Route path="/saved" element={<Saved />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
+
