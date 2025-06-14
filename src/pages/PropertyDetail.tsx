@@ -22,8 +22,12 @@ export default function PropertyDetail() {
   async function fetchProperty() {
     setLoading(true);
     // fetch from Supabase
-    const { data, error } = await import("@/integrations/supabase/client").then(m => m.supabase)
-      .from("properties").select("*").eq("id", id).maybeSingle();
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
     setProperty(data);
     setLoading(false);
   }
