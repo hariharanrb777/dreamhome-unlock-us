@@ -1,90 +1,75 @@
 
-import { useState } from "react";
+// Browse and filter properties from Supabase
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { PropertyCard } from "@/components/PropertyCard";
 import { PropertyFilters } from "@/components/filters/PropertyFilters";
-
-// Sample property dataset
-const mockProperties = [
-  {
-    id: "1",
-    title: "Modern Family Home",
-    address: "45 Central Park West, New York, NY",
-    price: 2250000,
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&q=80",
-    beds: 4,
-    baths: 3,
-    sqft: 2870,
-    agent: "Lisa Moore",
-  },
-  {
-    id: "2",
-    title: "Downtown Loft Retreat",
-    address: "89 Wabash Ave, Chicago, IL",
-    price: 745000,
-    image: "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c?w=600&q=80",
-    beds: 2,
-    baths: 2,
-    sqft: 1358,
-    agent: "Anthony Kim",
-  },
-  {
-    id: "3",
-    title: "Luxury Scottsdale Villa",
-    address: "10000 N 70th Pl, Scottsdale, AZ",
-    price: 1850000,
-    image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?w=600&q=80",
-    beds: 5,
-    baths: 4,
-    sqft: 3900,
-    agent: "Emma White",
-  },
-  {
-    id: "4",
-    title: "LA Hillside Estate",
-    address: "2201 Sunset Blvd, Los Angeles, CA",
-    price: 3500000,
-    image: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=600&q=80",
-    beds: 4,
-    baths: 5,
-    sqft: 4100,
-    agent: "Sophia Villa",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
 export default function Properties() {
   const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(false);
+  const [properties, setProperties] = useState<any[]>([]);
+  const { user } = useSupabaseAuth();
+  const [showMine, setShowMine] = useState(false);
 
-  // For MVP, filter the mock dataset on the frontend
-  let filtered = mockProperties.filter((p) => {
+  useEffect(() => {
+    fetchProps();
+    // eslint-disable-next-line
+  }, [filters, showMine, user]);
+
+  async function fetchProps() {
+    setLoading(true);
+    let query = supabase.from("properties").select("*");
+    if (showMine && user) {
+      // Only my listings
+      query = query.eq("owner_id", user.id);
+    }
+    const { data, error } = await query;
+    let filtered = (data ?? []);
     const f = filters as any;
-    if (f.query && !`${p.title} ${p.address}`.toLowerCase().includes(f.query.toLowerCase()))
-      return false;
-    if (f.minPrice && p.price < f.minPrice)
-      return false;
-    if (f.maxPrice && p.price > f.maxPrice)
-      return false;
-    if (f.beds && p.beds < f.beds)
-      return false;
-    if (f.baths && p.baths < f.baths)
-      return false;
-    return true;
-  });
+    if (f.query)
+      filtered = filtered.filter((p: any) => `${p.title} ${p.address}`.toLowerCase().includes(f.query.toLowerCase()));
+    if (f.minPrice)
+      filtered = filtered.filter((p: any) => Number(p.price) >= Number(f.minPrice));
+    if (f.maxPrice)
+      filtered = filtered.filter((p: any) => Number(p.price) <= Number(f.maxPrice));
+    if (f.beds)
+      filtered = filtered.filter((p: any) => Number(p.beds) >= Number(f.beds));
+    if (f.baths)
+      filtered = filtered.filter((p: any) => Number(p.baths) >= Number(f.baths));
+    setProperties(filtered);
+    setLoading(false);
+  }
 
   return (
     <div className="min-h-screen px-6 pb-10 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 mt-8">Find Your Perfect Property</h1>
+      <div className="flex items-center gap-2 mt-8 mb-6">
+        <h1 className="text-3xl font-bold">Find Your Perfect Property</h1>
+        {user && (
+          <Button
+            variant={showMine ? "default" : "outline"}
+            className="ml-4"
+            onClick={() => setShowMine((v) => !v)}
+          >
+            {showMine ? "Show All Listings" : "Show My Listings"}
+          </Button>
+        )}
+      </div>
       <div className="mb-6">
         <PropertyFilters onApply={setFilters} loading={loading} />
       </div>
-      {/* TODO: Add map integration, e.g. Mapbox/Leaflet mock component */}
+      {/* TODO: Add map integration */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="col-span-full text-center text-muted-foreground py-16 text-lg">Loading...</div>
+        ) : properties.length === 0 ? (
           <div className="col-span-full text-center text-muted-foreground py-16 text-lg">
             No properties found based on your filters.
           </div>
         ) : (
-          filtered.map((p) => <PropertyCard property={p} key={p.id} />)
+          properties.map((p) => <PropertyCard property={p} key={p.id} />)
         )}
       </div>
     </div>

@@ -9,7 +9,101 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      messages: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          property_id: string
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          property_id: string
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          property_id?: string
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string
+          baths: number
+          beds: number
+          created_at: string | null
+          description: string | null
+          id: string
+          image: string
+          owner_id: string
+          price: number
+          sqft: number
+          title: string
+        }
+        Insert: {
+          address: string
+          baths: number
+          beds: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image: string
+          owner_id: string
+          price: number
+          sqft: number
+          title: string
+        }
+        Update: {
+          address?: string
+          baths?: number
+          beds?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image?: string
+          owner_id?: string
+          price?: number
+          sqft?: number
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

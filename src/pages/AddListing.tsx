@@ -1,7 +1,10 @@
 
+// Add Listing page, saving to Supabase
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
 export default function AddListing() {
   const [title, setTitle] = useState("");
@@ -13,11 +16,36 @@ export default function AddListing() {
   const [image, setImage] = useState("");
   const [desc, setDesc] = useState("");
   const nav = useNavigate();
+  const { user } = useSupabaseAuth();
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // In real impl: submit to backend, refresh listings.
-    nav("/properties");
+    setErr(null);
+    setLoading(true);
+    if (!user) {
+      setErr("You must be signed in to list a property.");
+      setLoading(false);
+      return;
+    }
+    const { error } = await supabase.from("properties").insert([{
+      owner_id: user.id,
+      title,
+      address,
+      price: Number(price),
+      image,
+      beds: Number(beds),
+      baths: Number(baths),
+      sqft: Number(sqft),
+      description: desc,
+    }]);
+    setLoading(false);
+    if (error) {
+      setErr(error.message);
+    } else {
+      nav("/properties");
+    }
   }
 
   return (
@@ -91,8 +119,9 @@ export default function AddListing() {
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
         />
-        <Button className="mt-4" type="submit">
-          Publish Listing
+        {err && <div className="text-red-500 text-sm">{err}</div>}
+        <Button className="mt-4" type="submit" disabled={loading}>
+          {loading ? "Publishing..." : "Publish Listing"}
         </Button>
       </form>
     </div>

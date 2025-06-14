@@ -1,18 +1,28 @@
 
+// Login page using Supabase Auth
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-// NOTE: To be replaced with Supabase Auth integration!
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // In real impl: authenticate using Supabase Auth
-    nav("/");
+    setErr(null);
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
+      setErr(error.message);
+    } else {
+      nav("/");
+    }
   }
 
   return (
@@ -36,8 +46,9 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button className="w-full mt-2" type="submit">
-            Sign in
+          {err && <div className="text-red-500 text-sm">{err}</div>}
+          <Button className="w-full mt-2" type="submit" disabled={loading}>
+            {loading ? "Signing In..." : "Sign in"}
           </Button>
         </form>
         <Button variant="link" className="w-full mt-4" onClick={() => nav("/register")}>
